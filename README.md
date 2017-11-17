@@ -12,6 +12,7 @@
 * `abcify example.js -s` # to save abcified javascript file.
 
 where `example.js` is shown below:
+
 ```
 "use strict";
 import {z, y, x} from "./xyz.js";
@@ -28,8 +29,8 @@ const obj = {
 console.log({"k3": e, "k2": d, "k1": obj});
 
 const {e, d: {y, x} } = obj;
-
 ```
+
 After `abcify`, the terminal output would be the following:
 
 ```
@@ -48,11 +49,6 @@ const obj = {
 console.log({"k1": obj, "k2": d, "k3": e});
 
 const {d: {x, y}, e } = obj;
-
 ```
-
-ps. want to save your file
-
-* `~/abcify -s example.js`
 
 abc done!
