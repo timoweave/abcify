@@ -2,11 +2,11 @@
 
 `abcify` can be used to sort object literal by keys, object destructing by keys (like assignment and imports)
 
-== SETUP ==
+## SETUP
 
 * `npm install --global abcify`
 
-== EXAMPLE ==
+## EXAMPLE
 
 * `abcify example.js` # to abcify javascript file.
 * `abcify example.js -s` # to save abcified javascript file.
