@@ -65,8 +65,8 @@ function compare_by_imported_name(a, b) {
 }
 
 function compare_by_attribute_name(a, b) {
-  const a_name = a.type === 'JSXAttribute' ? `${a.name.name}=${a.value.value}` : null;
-  const b_name = b.type === 'JSXAttribute' ? `${b.name.name}=${b.value.value}` : null;
+  const a_name = a.type === 'JSXAttribute' ? a.name.name : null;
+  const b_name = b.type === 'JSXAttribute' ? b.name.name : null;
 
   return compare_name(a_name, b_name);    
 }
