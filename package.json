@@ -1,6 +1,6 @@
 {
   "name": "abcify",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "sort object literals or destructuring by key",
   "main": "abcify",
   "scripts": {
