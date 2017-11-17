@@ -1,6 +1,6 @@
 {
   "name": "abcify",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "sort object literals or destructuring by key",
   "main": "abcify",
   "scripts": {
@@ -11,6 +11,7 @@
     "object literals",
     "object destructuring"
   ],
+  "repository": "timoweave/abcify",
   "bin": {
     "abcify": "abcify"
   },
