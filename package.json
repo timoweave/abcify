@@ -1,0 +1,20 @@
+{
+  "name": "abcify",
+  "version": "1.0.0",
+  "description": "sort object literals or destructuring by key",
+  "main": "abcify",
+  "scripts": {
+  },
+  "keywords": [
+    "abc",
+    "sort",
+    "object literals",
+    "object destructuring"
+  ],
+  "author": "Timothy Shiu <timoweave@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "recast": "^0.12.9",
+    "yargs": "^10.0.3"
+  }
+}

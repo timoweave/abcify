@@ -1,0 +1,126 @@
+#!/usr/bin/env node
+("use strict");
+
+const fs = require('fs');
+const path = require('path');
+const assert = require('assert');
+const yargs = require('yargs');
+const recast = require('recast');
+
+function sort_object_literals(ast) {
+  recast.types.visit(ast, {
+    visitObjectExpression: function (path) {
+      this.traverse(path);
+      path.value.properties.sort(compare_by_object_key);
+    },
+  });
+}
+
+function sort_object_destructuring(ast) {
+  recast.types.visit(ast, {
+    visitObjectPattern: function (path) {
+      this.traverse(path);
+      path.value.properties.sort(compare_by_object_key);
+    }
+  });
+}
+
+function sort_import_destructuring(ast) {
+  recast.types.visit(ast, {
+    visitImportDeclaration: function(path) {
+      this.traverse(path);
+      path.value.specifiers.sort(compare_by_imported_name);
+    }
+  });
+}
+
+function compare_by_object_key(a, b) {
+  const a_name =
+	a.key.type === 'Identifier' ? a.key.name :
+	a.key.type === 'Literal' ? a.key.value : null;
+  const b_name =
+	b.key.type === 'Identifier' ? b.key.name :
+	b.key.type === 'Literal' ? b.key.value : null;
+  assert(a_name !== null && b_name !== null);
+  const a_len = a_name.length;
+
+  const b_len = b_name.length;
+  for (let a_i = 0, b_i = 0; a_i < a_len && b_i < b_len; a_i++, b_i++) {
+    const a_char = a_name[a_i];
+    const b_char = b_name[b_i];
+    if (a_char !== b_char) {
+      return a_char.charCodeAt(0) - b_char.charCodeAt(0);
+    }
+  }
+  return (a_len - b_len);
+}
+
+function compare_by_imported_name(a, b) {
+  const a_name = a.type === 'ImportSpecifier' ? a.imported.name : null;
+  const b_name = b.type === 'ImportSpecifier' ? b.imported.name : null;
+  assert(a_name !== null && b_name !== null);
+  const a_len = a_name.length;
+
+  const b_len = b_name.length;
+  for (let a_i = 0, b_i = 0; a_i < a_len && b_i < b_len; a_i++, b_i++) {
+    const a_char = a_name[a_i];
+    const b_char = b_name[b_i];
+    if (a_char !== b_char) {
+      return a_char.charCodeAt(0) - b_char.charCodeAt(0);
+    }
+  }
+  return (a_len - b_len);
+}
+
+function create_ast(filepath) {
+  if (!fs.existsSync(filepath)) {
+    console.warn(`WARNING: ${filepath} does not exist`);
+    return null;
+  } 
+  const source_code = fs.readFileSync(filepath, 'utf8');
+  if (!source_code) {
+    return null;
+  }
+  return recast.parse(source_code);
+}
+
+function parse_cmd_args() {
+  const {argv} = yargs
+	.usage('Usage: $0 <command> [options]')
+	.describe('s', 'save the transformed output back to the input file')
+	.demandCommand(1);
+  return argv;
+}
+
+function sort_braces(save = false) {
+  return ;
+}
+
+function abcify(filename, save = false) {
+  const filepath = path.resolve(filename);
+  const ast = create_ast(filepath);
+  
+  sort_import_destructuring(ast);        
+  sort_object_literals(ast);
+  sort_object_destructuring(ast);
+  
+  const {code: sorted_code} = recast.print(ast);
+  if (!save) {
+    console.log(sorted_code);	
+  } else {
+    fs.writeFileSync(filepath, sorted_code);
+  }
+}
+
+if (require.main === module) {
+  const args = parse_cmd_args();
+  const {s: save = false, _: filenames} = args;
+  filenames.forEach((filename) => abcify(filename, save));
+}
+
+module.exports = {
+  abcify,
+  sort_object_literals,
+  sort_object_destructuring,
+  sort_import_destructuring,
+};
