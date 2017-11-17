@@ -11,6 +11,9 @@
     "object literals",
     "object destructuring"
   ],
+  "bin": {
+    "abcify": "abcify"
+  },
   "author": "Timothy Shiu <timoweave@gmail.com>",
   "license": "ISC",
   "dependencies": {
