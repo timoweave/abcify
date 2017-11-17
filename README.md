@@ -1,10 +1,14 @@
 # abcify
 
-`abcify` can be used to sort object literal by keys, object destructing by keys (like assignment and imports)
+`abcify` can be used to sort
+1. object literal by keys,
+2. object destructing by keys,
+3. jsx properties by name
 
 ## SETUP
 
-* `npm install --global abcify`
+* `npm install recast yargs` # abcify dependencies
+* `npm install abcify`
 
 ## EXAMPLE
 
@@ -29,6 +33,12 @@ const obj = {
 console.log({"k3": e, "k2": d, "k1": obj});
 
 const {e, d: {y, x} } = obj;
+
+const Box = (
+    <div z="hello" y={true} x={1}>
+    box
+    </div>
+);
 ```
 
 After `abcify`, the terminal output would be the following:
@@ -49,6 +59,12 @@ const obj = {
 console.log({"k1": obj, "k2": d, "k3": e});
 
 const {d: {x, y}, e } = obj;
+
+const Box = (
+    <div x={1} y={true} z="hello">
+    box
+    </div>
+);
 ```
 
 abc done!

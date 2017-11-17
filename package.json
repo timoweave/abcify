@@ -1,10 +1,9 @@
 {
   "name": "abcify",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "sort object literals or destructuring by key",
   "main": "abcify",
-  "scripts": {
-  },
+  "scripts": {},
   "keywords": [
     "abc",
     "sort",

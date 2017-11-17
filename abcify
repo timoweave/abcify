@@ -7,31 +7,43 @@ const assert = require('assert');
 const yargs = require('yargs');
 const recast = require('recast');
 
-function sort_object_literals(ast) {
+function sort_ast(ast, token, node, comparator) {
   recast.types.visit(ast, {
-    visitObjectExpression: function (path) {
+    [token]: function (path) {
       this.traverse(path);
-      path.value.properties.sort(compare_by_object_key);
+      path.value[node].sort(comparator);      
     },
   });
 }
 
+function sort_object_literals(ast) {
+  sort_ast(ast, "visitObjectExpression", "properties", compare_by_object_key);
+}
+
 function sort_object_destructuring(ast) {
-  recast.types.visit(ast, {
-    visitObjectPattern: function (path) {
-      this.traverse(path);
-      path.value.properties.sort(compare_by_object_key);
-    }
-  });
+  sort_ast(ast, "visitObjectPattern", "properties", compare_by_object_key);
 }
 
 function sort_import_destructuring(ast) {
-  recast.types.visit(ast, {
-    visitImportDeclaration: function(path) {
-      this.traverse(path);
-      path.value.specifiers.sort(compare_by_imported_name);
+  sort_ast(ast, "visitImportDeclaration", "specifiers", compare_by_imported_name);
+}
+
+function sort_jsx_attributes(ast) {
+  sort_ast(ast, "visitJSXOpeningElement", "attributes", compare_by_attribute_name);  
+}
+
+function compare_name(a_name, b_name) {
+  const a_len = a_name.length;
+  const b_len = b_name.length;
+
+  for (let a_i = 0, b_i = 0; a_i < a_len && b_i < b_len; a_i++, b_i++) {
+    const a_char = a_name[a_i];
+    const b_char = b_name[b_i];
+    if (a_char !== b_char) {
+      return a_char.charCodeAt(0) - b_char.charCodeAt(0);
     }
-  });
+  }
+  return (a_len - b_len);
 }
 
 function compare_by_object_key(a, b) {
@@ -41,35 +53,22 @@ function compare_by_object_key(a, b) {
   const b_name =
 	b.key.type === 'Identifier' ? b.key.name :
 	b.key.type === 'Literal' ? b.key.value : null;
-  assert(a_name !== null && b_name !== null);
-  const a_len = a_name.length;
 
-  const b_len = b_name.length;
-  for (let a_i = 0, b_i = 0; a_i < a_len && b_i < b_len; a_i++, b_i++) {
-    const a_char = a_name[a_i];
-    const b_char = b_name[b_i];
-    if (a_char !== b_char) {
-      return a_char.charCodeAt(0) - b_char.charCodeAt(0);
-    }
-  }
-  return (a_len - b_len);
+  return compare_name(a_name, b_name);
 }
 
 function compare_by_imported_name(a, b) {
   const a_name = a.type === 'ImportSpecifier' ? a.imported.name : null;
   const b_name = b.type === 'ImportSpecifier' ? b.imported.name : null;
-  assert(a_name !== null && b_name !== null);
-  const a_len = a_name.length;
 
-  const b_len = b_name.length;
-  for (let a_i = 0, b_i = 0; a_i < a_len && b_i < b_len; a_i++, b_i++) {
-    const a_char = a_name[a_i];
-    const b_char = b_name[b_i];
-    if (a_char !== b_char) {
-      return a_char.charCodeAt(0) - b_char.charCodeAt(0);
-    }
-  }
-  return (a_len - b_len);
+  return compare_name(a_name, b_name);  
+}
+
+function compare_by_attribute_name(a, b) {
+  const a_name = a.type === 'JSXAttribute' ? `${a.name.name}=${a.value.value}` : null;
+  const b_name = b.type === 'JSXAttribute' ? `${b.name.name}=${b.value.value}` : null;
+
+  return compare_name(a_name, b_name);    
 }
 
 function create_ast(filepath) {
@@ -92,17 +91,14 @@ function parse_cmd_args() {
   return argv;
 }
 
-function sort_braces(save = false) {
-  return ;
-}
-
 function abcify(filename, save = false) {
   const filepath = path.resolve(filename);
   const ast = create_ast(filepath);
-  
+
   sort_import_destructuring(ast);        
   sort_object_literals(ast);
   sort_object_destructuring(ast);
+  sort_jsx_attributes(ast);
   
   const {code: sorted_code} = recast.print(ast);
   if (!save) {
@@ -123,4 +119,5 @@ module.exports = {
   sort_object_literals,
   sort_object_destructuring,
   sort_import_destructuring,
+  sort_jsx_attributes,
 };
