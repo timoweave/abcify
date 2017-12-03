@@ -23,6 +23,7 @@ where `example.js` is shown below:
 ```
 "use strict";
 import {z, y, x} from "./xyz.js";
+import type {Y, X} from "./xyz.js";
 const {c, b, a} = require('./abc.js');
 
 type Obj = {
@@ -57,6 +58,7 @@ After `abcify`, the terminal output would be the following:
 ```
 "use strict";
 import {x, y, z} from "./xyz.js";
+import type {X, Y} from "./xyz.js";
 const {a, b, c} = require('./abc.js');
 
 type Obj = {
