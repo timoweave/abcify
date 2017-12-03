@@ -20,7 +20,7 @@ note: you can add either `--save-dev` or `--global` flag.
 
 where `example.js` is shown below:
 
-```
+```javascript
 "use strict";
 import {z, y, x} from "./xyz.js";
 import type {Y, X} from "./xyz.js";
@@ -55,7 +55,7 @@ const Box = (
 
 After `abcify`, the terminal output would be the following:
 
-```
+```javascript
 "use strict";
 import {x, y, z} from "./xyz.js";
 import type {X, Y} from "./xyz.js";
