@@ -4,7 +4,7 @@ This `abcify` cli (supporting es2015, react, flow) can be used to sort
 1. object literal by keys,
 2. es2015 object destructing by keys,
 3. react jsx properties by name,
-4. flow type object literal by keys,
+4. flow type literal by keys,
 
 ## SETUP
 
@@ -27,9 +27,9 @@ import type {Y, X} from "./xyz.js";
 const {c, b, a} = require('./abc.js');
 
 type Obj = {
-  "b": boolean,
-  "a": number,
-  e: Array<number,
+  "b;": boolean,
+  "a:": number,
+  e: Array<number>,
   d: {y: boolean, z: number, x: string},
   c: string,
 };
@@ -38,8 +38,8 @@ const obj: Obj = {
   e: [3, 2, 1, 0],
   d: {z: 0, y: false, x: "hey"},
   c: "hello",
-  "b": true,
-  "a": 1,
+  "b;": true,
+  "a:": 1,
 };
 
 console.log({"k3": e, "k2": d, "k1": obj});
@@ -62,16 +62,16 @@ import type {X, Y} from "./xyz.js";
 const {a, b, c} = require('./abc.js');
 
 type Obj = {
-  "a": number,
-  "b": boolean,
+  "a:": number,
+  "b;": boolean,
   c: string,
   d: {x: string, y: boolean, z: number},
-  e: Array<number,
+  e: Array<number>,
 };
 
 const obj: Obj = {
-  "a": 1,
-  "b": true,
+  "a:": 1,
+  "b;": true,
   c: "hello",
   d: {x: "hey", y: false, z: 0},
   e: [3, 2, 1, 0],

@@ -1,7 +1,7 @@
 {
   "name": "abcify",
-  "version": "1.0.7",
-  "description": "sort object literals or destructuring by key",
+  "version": "1.0.8",
+  "description": "sort object literals, object destructuring, react attributes, and flow type by key",
   "main": "abcify",
   "scripts": {},
   "keywords": [
