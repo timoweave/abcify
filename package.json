@@ -1,6 +1,6 @@
 {
   "name": "abcify",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "sort object literals or destructuring by key",
   "main": "abcify",
   "scripts": {},
@@ -8,7 +8,9 @@
     "abc",
     "sort",
     "object literals",
-    "object destructuring"
+    "es2015 object destructuring",
+    "react attributes",
+    "flow types"
   ],
   "repository": {
     "type": "git",
@@ -20,6 +22,7 @@
   "author": "Timothy Shiu <timoweave@gmail.com>",
   "license": "ISC",
   "dependencies": {
+    "flow-parser": "^0.60.1",
     "recast": "^0.12.9",
     "yargs": "^10.0.3"
   }

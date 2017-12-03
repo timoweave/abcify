@@ -6,12 +6,13 @@ const path = require('path');
 const assert = require('assert');
 const yargs = require('yargs');
 const recast = require('recast');
+const flow_parser = require("flow-parser");
 
 function sort_ast(ast, token, node, comparator) {
   recast.types.visit(ast, {
     [token]: function (path) {
       this.traverse(path);
-      path.value[node].sort(comparator);      
+      path.value[node].sort(comparator);
     },
   });
 }
@@ -29,7 +30,11 @@ function sort_import_destructuring(ast) {
 }
 
 function sort_jsx_attributes(ast) {
-  sort_ast(ast, "visitJSXOpeningElement", "attributes", compare_by_attribute_name);  
+  sort_ast(ast, "visitJSXOpeningElement", "attributes", compare_by_attribute_name);
+}
+
+function sort_flow_object_literals(ast) {
+  sort_ast(ast, "visitObjectTypeAnnotation", "properties", compare_by_object_key);
 }
 
 function compare_name(a_name, b_name) {
@@ -80,7 +85,7 @@ function create_ast(filepath) {
   if (!source_code) {
     return null;
   }
-  return recast.parse(source_code);
+  return recast.parse(source_code, {parser: flow_parser});
 }
 
 function parse_cmd_args() {
@@ -99,7 +104,8 @@ function abcify(filename, save = false) {
   sort_object_literals(ast);
   sort_object_destructuring(ast);
   sort_jsx_attributes(ast);
-  
+  sort_flow_object_literals(ast);
+
   const {code: sorted_code} = recast.print(ast);
   if (!save) {
     console.log(sorted_code);	
