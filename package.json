@@ -1,6 +1,6 @@
 {
   "name": "abcify",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "sort object literals, object destructuring, react attributes, and flow type by key",
   "main": "abcify",
   "scripts": {},

@@ -31,6 +31,8 @@ const {e, d: {y, x}} = obj;
 
 const Box = (
     <div z="hello" y={true} x={1}>
-        box
+        <div style={{weight: "100%", fontSize: "10px"}} className="hello">
+            box
+        </div>
     </div>
 );

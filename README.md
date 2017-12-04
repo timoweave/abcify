@@ -1,7 +1,9 @@
 # abcify cli
 
-This `abcify` sort the following expressions. It walks an AST with visitors to sort expressions.
-1. support: es2015, react, flow,
+This `abcify` sort the following expressions.  
+It walks a given AST with visitors to sort commutative expressions.
+
+1. support: es2015, react, and flow,
 2. object literal by keys,
 3. es2015 object destructing by keys,
 4. react jsx properties by names,
@@ -13,18 +15,19 @@ This `abcify` sort the following expressions. It walks an AST with visitors to s
 * `npm install abcify`
 
 note:
-- if needed, add `--save`, `--save-dev`, xor `--global` flag.
-- if dependencies failed, run `npm install recast yargs flow-parser`
+- if needed, add `--save-dev` xor `--global` flag.
+- if dependencies failed, run `npm install recast yargs flow-parser` again.
 
 ## EXAMPLE
 
-* `abcify example.js` # to print abcified output to terminal.
-* `abcify example.js -s` # to save abcified back to the same file.
+* `abcify example.js` # to print abcified output to console or terminal.
+* `abcify example.js -s` # to save abcified output to the input file.
 
-where `example.js` is shown below:
+where non-abc input `example.js` is shown below:
 
 ```javascript
 "use strict";
+
 import {z, y, x} from "./xyz.js";
 import type {Y, X} from "./xyz.js";
 const {c, b, a} = require('./abc.js');
@@ -55,15 +58,18 @@ const {e, d: {y, x} } = obj;
 
 const Box = (
     <div z="hello" y={true} x={1}>
-    box
+        <div style={{weight: "100%", fontSize: "10px"}} className="hello">
+            box
+        </div>
     </div>
 );
 ```
 
-After `abcify`, the terminal output would be the following:
+And, the abcified output is shown below:
 
 ```javascript
 "use strict";
+
 import {x, y, z} from "./xyz.js";
 import type {X, Y} from "./xyz.js";
 const {a, b, c} = require('./abc.js');
@@ -94,7 +100,9 @@ const {d: {x, y}, e } = obj;
 
 const Box = (
     <div x={1} y={true} z="hello">
-    box
+        <div className="hello" style={{fontSize: "10px", weight: "100%"}}>
+            box
+        </div>
     </div>
 );
 ```
