@@ -6,7 +6,7 @@ import type {Y, X} from "./xyz.js";
 const {c, b, a} = require("./abc.js");
 
 type Numeric = 10 | 2 | 1 | -1;
-type Strange = false | 400 | "hello" | undefined | null;
+type Strange = false | 400 | "hello" | undefined | 9 | "yes" | true | null | -5;
 type Sizes = "pettie" | "small" | "medium" | "large";
 
 type Obj = {

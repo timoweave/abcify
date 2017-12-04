@@ -5,7 +5,8 @@ This `abcify` sort the following expressions. It walks an AST with visitors to s
 2. object literal by keys,
 3. es2015 object destructing by keys,
 4. react jsx properties by names,
-5. flow type literal by keys, union by values,
+5. flow type literal by keys, 
+6. union by values (undefined < null < boolean < number < string),
 
 ## SETUP
 
@@ -13,7 +14,7 @@ This `abcify` sort the following expressions. It walks an AST with visitors to s
 
 note:
 - if needed, add `--save`, `--save-dev`, xor `--global` flag.
-- if dependencies failed run `npm install recast yargs flow-parser`
+- if dependencies failed, run `npm install recast yargs flow-parser`
 
 ## EXAMPLE
 
@@ -67,9 +68,9 @@ import {x, y, z} from "./xyz.js";
 import type {X, Y} from "./xyz.js";
 const {a, b, c} = require('./abc.js');
 
-type Numeric = 10 | 2 | 1 | -1;
-type Strange = false | 400 | "hello" | undefined | null;
-type Sizes = "pettie" | "small" | "medium" | "large";
+type Numeric = -1 | 1 | 2 | 10;
+type Strange = undefined | null | false | true | -5 | 9 | 400 | "hello" | "yes";
+type Sizes = "large" | "medium" | "pettie" | "small";
 
 type Obj = {
   "a:": number,
