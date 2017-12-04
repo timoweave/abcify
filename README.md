@@ -1,22 +1,24 @@
-# abcify
+# abcify cli
 
-This `abcify` cli (supporting es2015, react, flow) can be used to sort
-1. object literal by keys,
-2. es2015 object destructing by keys,
-3. react jsx properties by name,
-4. flow type literal by keys,
+This `abcify` sort the following expressions. It walks an AST with visitors to sort expressions.
+1. support: es2015, react, flow,
+2. object literal by keys,
+3. es2015 object destructing by keys,
+4. react jsx properties by names,
+5. flow type literal by keys, union by values,
 
 ## SETUP
 
-* `npm install recast yargs flow-parser` # dependencies
 * `npm install abcify`
 
-note: you can add either `--save-dev` or `--global` flag.
+note:
+- if needed, add `--save`, `--save-dev`, xor `--global` flag.
+- if dependencies failed run `npm install recast yargs flow-parser`
 
 ## EXAMPLE
 
-* `abcify example.js` # to abcify javascript file.
-* `abcify example.js -s` # to save abcified javascript file.
+* `abcify example.js` # to print abcified output to terminal.
+* `abcify example.js -s` # to save abcified back to the same file.
 
 where `example.js` is shown below:
 
@@ -25,6 +27,10 @@ where `example.js` is shown below:
 import {z, y, x} from "./xyz.js";
 import type {Y, X} from "./xyz.js";
 const {c, b, a} = require('./abc.js');
+
+type Numeric = 10 | 2 | 1 | -1;
+type Strange = false | 400 | "hello" | undefined | null;
+type Sizes = "pettie" | "small" | "medium" | "large";
 
 type Obj = {
   "b;": boolean,
@@ -61,6 +67,10 @@ import {x, y, z} from "./xyz.js";
 import type {X, Y} from "./xyz.js";
 const {a, b, c} = require('./abc.js');
 
+type Numeric = 10 | 2 | 1 | -1;
+type Strange = false | 400 | "hello" | undefined | null;
+type Sizes = "pettie" | "small" | "medium" | "large";
+
 type Obj = {
   "a:": number,
   "b;": boolean,
@@ -87,5 +97,3 @@ const Box = (
     </div>
 );
 ```
-
-abc done!

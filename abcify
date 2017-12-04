@@ -3,7 +3,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const assert = require('assert');
 const yargs = require('yargs');
 const recast = require('recast');
 const flow_parser = require("flow-parser");
@@ -17,47 +16,47 @@ function sort_ast(ast, token, node, comparator) {
   });
 }
 
-function sort_object_literals(ast) {
-  sort_ast(ast, "visitObjectExpression", "properties", compare_by_object_key);
-}
 
-function sort_object_destructuring(ast) {
-  sort_ast(ast, "visitObjectPattern", "properties", compare_by_object_key);
-}
+function sort_flow_union(ast) { // enum
 
-function sort_import_destructuring(ast) {
-  sort_ast(ast, "visitImportDeclaration", "specifiers", compare_by_imported_name);
-}
-
-function sort_jsx_attributes(ast) {
-  sort_ast(ast, "visitJSXOpeningElement", "attributes", compare_by_attribute_name);
-}
-
-function sort_flow_object_literals(ast) {
-  sort_ast(ast, "visitObjectTypeAnnotation", "properties", compare_by_object_key);
 }
 
 function compare_name(a_name, b_name) {
-  const a_len = a_name.length;
-  const b_len = b_name.length;
+  const a_len = a_name === null ? 0 : a_name.length;
+  const b_len = b_name === null ? 0 : b_name.length;
 
   for (let a_i = 0, b_i = 0; a_i < a_len && b_i < b_len; a_i++, b_i++) {
-    const a_char = a_name[a_i];
-    const b_char = b_name[b_i];
-    if (a_char !== b_char) {
-      return a_char.charCodeAt(0) - b_char.charCodeAt(0);
+    const a_num = a_name !== null ? a_name[a_i].charCodeAt(0) : 0;
+    const b_num = b_name !== null ? b_name[b_i].charCodeAt(0) : 0;
+    if (a_num !== b_num) {
+      return a_num - b_num;
     }
   }
   return (a_len - b_len);
 }
 
+function compare_by_union_raw(a, b) {
+  const a_name =
+        a.type === 'NullLiteralTypeAnnotation' ? 'null' :
+        a.type === 'GenericTypeAnnotation'? a.id.name :
+        a.raw;
+  const b_name =
+        b.type === 'NullLiteralTypeAnnotation' ? 'null' :
+        b.type === 'GenericTypeAnnotation'? b.id.name :
+        b.raw;
+
+  return compare_name(a_name, b_name);
+}
+
 function compare_by_object_key(a, b) {
   const a_name =
 	a.key.type === 'Identifier' ? a.key.name :
-	a.key.type === 'Literal' ? a.key.value : null;
+	a.key.type === 'Literal' ? a.key.value :
+        null;
   const b_name =
 	b.key.type === 'Identifier' ? b.key.name :
-	b.key.type === 'Literal' ? b.key.value : null;
+	b.key.type === 'Literal' ? b.key.value :
+        null;
 
   return compare_name(a_name, b_name);
 }
@@ -66,21 +65,21 @@ function compare_by_imported_name(a, b) {
   const a_name = a.type === 'ImportSpecifier' ? a.imported.name : null;
   const b_name = b.type === 'ImportSpecifier' ? b.imported.name : null;
 
-  return compare_name(a_name, b_name);  
+  return compare_name(a_name, b_name);
 }
 
 function compare_by_attribute_name(a, b) {
   const a_name = a.type === 'JSXAttribute' ? a.name.name : null;
   const b_name = b.type === 'JSXAttribute' ? b.name.name : null;
 
-  return compare_name(a_name, b_name);    
+  return compare_name(a_name, b_name);
 }
 
 function create_ast(filepath) {
   if (!fs.existsSync(filepath)) {
     console.warn(`WARNING: ${filepath} does not exist`);
     return null;
-  } 
+  }
   const source_code = fs.readFileSync(filepath, 'utf8');
   if (!source_code) {
     return null;
@@ -100,11 +99,12 @@ function abcify(filename, save = false) {
   const filepath = path.resolve(filename);
   const ast = create_ast(filepath);
 
-  sort_import_destructuring(ast);        
-  sort_object_literals(ast);
-  sort_object_destructuring(ast);
-  sort_jsx_attributes(ast);
-  sort_flow_object_literals(ast);
+  sort_ast(ast, "visitImportDeclaration", "specifiers", compare_by_imported_name);
+  sort_ast(ast, "visitObjectExpression", "properties", compare_by_object_key);
+  sort_ast(ast, "visitObjectPattern", "properties", compare_by_object_key);
+  sort_ast(ast, "visitJSXOpeningElement", "attributes", compare_by_attribute_name);
+  sort_ast(ast, "visitObjectTypeAnnotation", "properties", compare_by_object_key);
+  sort_ast(ast, "visitUnionTypeAnnotation", "types", compare_by_union_raw);
 
   const {code: sorted_code} = recast.print(ast);
   if (!save) {
@@ -121,9 +121,5 @@ if (require.main === module) {
 }
 
 module.exports = {
-  abcify,
-  sort_object_literals,
-  sort_object_destructuring,
-  sort_import_destructuring,
-  sort_jsx_attributes,
+  abcify
 };
