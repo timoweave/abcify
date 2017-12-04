@@ -1,14 +1,14 @@
 # abcify cli
 
-This `abcify` sort the following expressions.  
-It walks a given AST with visitors to sort commutative expressions.
+This `abcify` walks the input AST with visitors to sort commutative expressions shown here:
 
-1. support: es2015, react, and flow,
-2. object literal by keys,
-3. es2015 object destructing by keys,
-4. react jsx properties by names,
-5. flow type object literal by keys,
-6. flow union by this criteria (undefined < null < boolean < number < string),
+1. object literal by keys,
+2. es2015 object destructing by keys,
+3. react jsx properties by names,
+4. flow type object literal by keys,
+5. flow union by this criteria (undefined < null < boolean < number < string),
+
+note: supporting es2015, react, and flow.
 
 ## SETUP
 
@@ -23,7 +23,7 @@ note:
 * `abcify example.js` # to print abcified output to console or terminal.
 * `abcify example.js -s` # to save abcified output to the input file.
 
-where non-abc input `example.js` is shown below:
+where non-abc input `example.js` is shown here:
 
 ```javascript
 "use strict";
@@ -65,7 +65,7 @@ const Box = (
 );
 ```
 
-And, the abcified output is shown below:
+And, the abcified output is shown here:
 
 ```javascript
 "use strict";
