@@ -5,8 +5,8 @@ This `abcify` sort the following expressions. It walks an AST with visitors to s
 2. object literal by keys,
 3. es2015 object destructing by keys,
 4. react jsx properties by names,
-5. flow type literal by keys, 
-6. union by values (undefined < null < boolean < number < string),
+5. flow type object literal by keys,
+6. flow union by this criteria (undefined < null < boolean < number < string),
 
 ## SETUP
 
@@ -30,7 +30,7 @@ import type {Y, X} from "./xyz.js";
 const {c, b, a} = require('./abc.js');
 
 type Numeric = 10 | 2 | 1 | -1;
-type Strange = false | 400 | "hello" | undefined | null;
+type Strange = false | 400 | "hello" | undefined | 9 | "yes" | true | null | -5;
 type Sizes = "pettie" | "small" | "medium" | "large";
 
 type Obj = {
