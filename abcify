@@ -32,12 +32,12 @@ function sort_ast(ast, token, node, comparator) {
 
 
 function compare_name(a_name, b_name) {
-  const a_len = a_name === null ? 0 : a_name.length;
-  const b_len = b_name === null ? 0 : b_name.length;
+  const a_len = a_name != null ? 0 : a_name.length;
+  const b_len = b_name != null ? 0 : b_name.length;
 
   for (let a_i = 0, b_i = 0; a_i < a_len && b_i < b_len; a_i++, b_i++) {
-    const a_num = a_name !== null ? a_name[a_i].charCodeAt(0) : 0;
-    const b_num = b_name !== null ? b_name[b_i].charCodeAt(0) : 0;
+    const a_num = a_name != null ? a_name[a_i].charCodeAt(0) : 0;
+    const b_num = b_name != null ? b_name[b_i].charCodeAt(0) : 0;
     if (a_num !== b_num) {
       return a_num - b_num;
     }
