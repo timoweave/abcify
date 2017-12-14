@@ -50,7 +50,11 @@ function sort_ast_switch(ast, token, node) {
         const consequent = these_cases[these_cases.length - 1].consequent;
         these_cases[these_cases.length - 1].consequent = [];
         these_cases.sort((a, b) => {
-          if (a === null || a.test === null) {
+          if (a === null || a.test === undefined) {
+            return 1;
+          } else if (b === null || b.test === undefined) {
+            return -1;
+          } else if (a === null || a.test === null) {
             return 1;
           } else if (b === null || b.test === null) {
             return -1;
@@ -61,15 +65,21 @@ function sort_ast_switch(ast, token, node) {
             return a.test.value === b.test.value
               ? 0
               : a.test.value > b.test.value;
+          } else if (typeof a.test.value === "boolean") {
+            return -1;
+          } else if (typeof b.test.value === "boolean") {
+            return 1;
           } else if (
             typeof a.test.value === typeof b.test.value &&
             typeof a.test.value === "number"
           ) {
             return a.test.value - b.test.value;
-          } else if (typeof a.test.value === typeof b.test.value) {
-            return compare_name(a.test.value, b.test.value);
+          } else if (typeof a.test.value === "number") {
+            return -1;
+          } else if (typeof b.test.value === "number") {
+            return 1;
           } else {
-            compare_name(a.test.raw, b.test.raw);
+            compare_name(a.test.value, b.test.value);
           }
         });
         these_cases[these_cases.length - 1].consequent = consequent;
