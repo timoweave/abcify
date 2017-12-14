@@ -1,9 +1,11 @@
 {
   "name": "abcify",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "description": "sort object literals, object destructuring, react attributes, and flow type by key",
   "main": "abcify",
-  "scripts": {},
+  "scripts": {
+    "test": "abcify test/example.js > test/tested.js && diff test/tested.js test/expected.js"
+  },
   "keywords": [
     "abc",
     "sort",
