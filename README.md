@@ -28,7 +28,7 @@ where non-abc input `test/example.js` is shown here:
 
 ```diff
 diff --git a/test/example.js b/test/example.js
-index aae57f9..fa17aa4 100644
+index aae57f9..0afd265 100644
 --- a/test/example.js
 +++ b/test/example.js
 @@ -1,37 +1,37 @@
@@ -86,7 +86,7 @@ index aae57f9..fa17aa4 100644
        box
      </div>
    </div>
-@@ -39,30 +39,31 @@ const Box = (
+@@ -39,28 +39,28 @@ const Box = (
  
  function test(a) {
    switch (a) {
@@ -98,10 +98,11 @@ index aae57f9..fa17aa4 100644
        console.log("a is 1 < 2 < 3 < '5'");
        break;
 -    case "zebra":
++    case 10:
      case "alpha":
      case "beta":
+-    case 10:
 +    case "zebra":
-     case 10:
        console.log("a is 10 < 'alpha' < 'beta' < 'zebra'");
        break;
 -    case true:
@@ -120,7 +121,4 @@ index aae57f9..fa17aa4 100644
      default:
        console.log("a is default 100 < '200' < 'a' < default");
        break;
-   }
- }
-+
 ```

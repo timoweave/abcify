@@ -58,28 +58,32 @@ function sort_ast_switch(ast, token, node) {
             return 1;
           } else if (b === null || b.test === null) {
             return -1;
-          } else if (
-            typeof a.test.value === typeof b.test.value &&
-            typeof a.test.value === "boolean"
-          ) {
-            return a.test.value === b.test.value
-              ? 0
-              : a.test.value > b.test.value;
-          } else if (typeof a.test.value === "boolean") {
-            return -1;
-          } else if (typeof b.test.value === "boolean") {
-            return 1;
-          } else if (
-            typeof a.test.value === typeof b.test.value &&
-            typeof a.test.value === "number"
-          ) {
-            return a.test.value - b.test.value;
-          } else if (typeof a.test.value === "number") {
-            return -1;
-          } else if (typeof b.test.value === "number") {
-            return 1;
+          } else if (typeof a.test.value !== typeof b.test.value) {
+            if (typeof a.test.value === "boolean") {
+              return -1;
+            } else if (typeof b.test.value === "boolean") {
+              return 1;
+            } else if (typeof a.test.value === "number") {
+              return -1;
+            } else if (typeof b.test.value === "number") {
+              return 1;
+            }
+          } else if (typeof a.test.value === typeof b.test.value) {
+            if (typeof a.test.value === "boolean") {
+              if (a.test.value === b.test.value) {
+                return 0;
+              } else if (a.test.value < b.test.value) {
+                return -1;
+              } else {
+                return 1;
+              }
+            } else if (typeof a.test.value === "number") {
+              return a.test.value - b.test.value;
+            } else {
+              return compare_name(a.test.value, b.test.value);
+            }
           } else {
-            compare_name(a.test.value, b.test.value);
+            return compare_name(a.test.value, b.test.value);
           }
         });
         these_cases[these_cases.length - 1].consequent = consequent;
