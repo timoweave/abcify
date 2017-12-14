@@ -24,7 +24,7 @@ note:
 * `abcify test/example.js` # to print abcified output to console or terminal.
 * `abcify test/example.js -s` # to save abcified output to the input file.
 
-where non-abc input `test/example.js` is shown here:
+where `git diff` of `test/example.js` is shown here:
 
 ```diff
 diff --git a/test/example.js b/test/example.js
