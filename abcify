@@ -1,39 +1,92 @@
 #!/usr/bin/env node
 ("use strict");
 
-const fs = require('fs');
-const path = require('path');
-const yargs = require('yargs');
-const recast = require('recast');
+const fs = require("fs");
+const path = require("path");
+const yargs = require("yargs");
+const recast = require("recast");
 const flow_parser = require("flow-parser");
 
-const JSXATTRIBUTE = 'JSXAttribute';
-const LITERAL = 'Literal';
-const IMPORTSPECIFIER = 'ImportSpecifier';
-const NULL = 'NullLiteralTypeAnnotation';
-const GENERIC = 'GenericTypeAnnotation';
-const NUMBER = 'NumberLiteralTypeAnnotation'
-const BOOLEAN = 'BooleanLiteralTypeAnnotation';
-const UNDEFINED = 'undefined';
-const IDENTIFIER = 'Identifier';
+const JSX_ATTRIBUTE = "JSXAttribute";
+const LITERAL = "Literal";
+const IMPORT_SPECIFIER = "ImportSpecifier";
+const NULL = "NullLiteralTypeAnnotation";
+const GENERIC = "GenericTypeAnnotation";
+const NUMBER_LITERAL = "NumberLiteralTypeAnnotation";
+const BOOLEAN_LITERAL = "BooleanLiteralTypeAnnotation";
+const UNDEFINED = "undefined";
+const IDENTIFIER = "Identifier";
 
-const is_undefined = (a) => ((a.type === GENERIC) &&
-                             (a.id.type === IDENTIFIER) &&
-                             (a.id.name === UNDEFINED));
+const is_undefined_literal = a =>
+  a.type === GENERIC && a.id.type === IDENTIFIER && a.id.name === UNDEFINED;
 
 function sort_ast(ast, token, node, comparator) {
   recast.types.visit(ast, {
-    [token]: function (path) {
+    [token]: function(path) {
       this.traverse(path);
       path.value[node].sort(comparator);
     },
   });
 }
 
+function sort_ast_switch(ast, token, node) {
+  recast.types.visit(ast, {
+    [token]: function(path) {
+      this.traverse(path);
+      const init = [[]];
+      const nested_cases = path.value.cases.reduce((ans, this_case) => {
+        const last = ans[ans.length - 1];
+        if (
+          last.length === 0 ||
+          last[last.length - 1].consequent.length === 0
+        ) {
+          last.push(this_case);
+        } else {
+          ans.push([this_case]);
+        }
+        return ans;
+      }, init);
+      const sorted_cases = nested_cases.map(these_cases => {
+        const consequent = these_cases[these_cases.length - 1].consequent;
+        these_cases[these_cases.length - 1].consequent = [];
+        these_cases.sort((a, b) => {
+          if (a === null || a.test === null) {
+            return 1;
+          } else if (b === null || b.test === null) {
+            return -1;
+          } else if (
+            typeof a.test.value === typeof b.test.value &&
+            typeof a.test.value === "boolean"
+          ) {
+            return a.test.value === b.test.value
+              ? 0
+              : a.test.value > b.test.value;
+          } else if (
+            typeof a.test.value === typeof b.test.value &&
+            typeof a.test.value === "number"
+          ) {
+            return a.test.value - b.test.value;
+          } else if (typeof a.test.value === typeof b.test.value) {
+            return compare_name(a.test.value, b.test.value);
+          } else {
+            compare_name(a.test.raw, b.test.raw);
+          }
+        });
+        these_cases[these_cases.length - 1].consequent = consequent;
+        return these_cases;
+      });
+      const new_cases = sorted_cases.reduce((ans, nested) => {
+        ans.push(...nested);
+        return ans;
+      }, []);
+      path.value.cases = new_cases;
+    },
+  });
+}
 
 function compare_name(a_name, b_name) {
-  const a_len = a_name != null ? 0 : a_name.length;
-  const b_len = b_name != null ? 0 : b_name.length;
+  const a_len = a_name == null ? 0 : a_name.length;
+  const b_len = b_name == null ? 0 : b_name.length;
 
   for (let a_i = 0, b_i = 0; a_i < a_len && b_i < b_len; a_i++, b_i++) {
     const a_num = a_name != null ? a_name[a_i].charCodeAt(0) : 0;
@@ -42,58 +95,58 @@ function compare_name(a_name, b_name) {
       return a_num - b_num;
     }
   }
-  return (a_len - b_len);
+  return a_len - b_len;
 }
 
 function compare_by_union(a, b) {
-  if (is_undefined(a)){
-      return -1;
-  } else if (is_undefined(b)) {
-      return 1;
+  if (is_undefined_literal(a)) {
+    return -1;
+  } else if (is_undefined_literal(b)) {
+    return 1;
   } else if (a.type === NULL) {
-      return -1;
+    return -1;
   } else if (b.type === NULL) {
-      return 1;
-  } else if ((a.type === BOOLEAN) && (b.type === BOOLEAN)) {
-      return compare_name(a.raw, b.raw);
-  } else if (a.type === BOOLEAN) {
-      return -1;
-  } else if (b.type === BOOLEAN) {
-      return 1;      
-  } else if ((a.type === NUMBER) && (b.type === NUMBER)) {
-      return a.value - b.value;
-  } else if (a.type === NUMBER) {
-      return -1;
-  } else if (b.type === NUMBER) {
-      return 1;      
+    return 1;
+  } else if (a.type === BOOLEAN_LITERAL && b.type === BOOLEAN_LITERAL) {
+    return compare_name(a.raw, b.raw);
+  } else if (a.type === BOOLEAN_LITERAL) {
+    return -1;
+  } else if (b.type === BOOLEAN_LITERAL) {
+    return 1;
+  } else if (a.type === NUMBER_LITERAL && b.type === NUMBER_LITERAL) {
+    return a.value - b.value;
+  } else if (a.type === NUMBER_LITERAL) {
+    return -1;
+  } else if (b.type === NUMBER_LITERAL) {
+    return 1;
   } else {
-      return compare_name(a.raw, b.raw);
+    return compare_name(a.raw, b.raw);
   }
 }
 
 function compare_by_object(a, b) {
   const a_name =
-	a.key.type === IDENTIFIER ? a.key.name :
-	a.key.type === LITERAL ? a.key.value :
-        null;
+    a.key.type === IDENTIFIER
+      ? a.key.name
+      : a.key.type === LITERAL ? a.key.value : null;
   const b_name =
-	b.key.type === IDENTIFIER ? b.key.name :
-	b.key.type === LITERAL ? b.key.value :
-        null;
+    b.key.type === IDENTIFIER
+      ? b.key.name
+      : b.key.type === LITERAL ? b.key.value : null;
 
   return compare_name(a_name, b_name);
 }
 
 function compare_by_imported(a, b) {
-  const a_name = a.type === IMPORTSPECIFIER ? a.imported.name : null;
-  const b_name = b.type === IMPORTSPECIFIER ? b.imported.name : null;
+  const a_name = a.type === IMPORT_SPECIFIER ? a.imported.name : null;
+  const b_name = b.type === IMPORT_SPECIFIER ? b.imported.name : null;
 
   return compare_name(a_name, b_name);
 }
 
 function compare_by_attribute(a, b) {
-  const a_name = a.type === JSXATTRIBUTE ? a.name.name : null;
-  const b_name = b.type === JSXATTRIBUTE ? b.name.name : null;
+  const a_name = a.type === JSX_ATTRIBUTE ? a.name.name : null;
+  const b_name = b.type === JSX_ATTRIBUTE ? b.name.name : null;
 
   return compare_name(a_name, b_name);
 }
@@ -103,7 +156,7 @@ function create_ast(filepath) {
     console.warn(`WARNING: ${filepath} does not exist`);
     return null;
   }
-  const source_code = fs.readFileSync(filepath, 'utf8');
+  const source_code = fs.readFileSync(filepath, "utf8");
   if (!source_code) {
     return null;
   }
@@ -112,9 +165,9 @@ function create_ast(filepath) {
 
 function parse_cmd_args() {
   const {argv} = yargs
-	.usage('Usage: $0 <command> [options]')
-	.describe('s', 'save the transformed output back to the input file')
-	.demandCommand(1);
+    .usage("Usage: $0 <command> [options]")
+    .describe("s", "save the transformed output back to the input file")
+    .demandCommand(1);
   return argv;
 }
 
@@ -129,9 +182,11 @@ function abcify(filename, save = false) {
   sort_ast(ast, "visitObjectTypeAnnotation", "properties", compare_by_object);
   sort_ast(ast, "visitUnionTypeAnnotation", "types", compare_by_union);
 
+  sort_ast_switch(ast, "visitSwitchStatement", "cases");
+
   const {code: sorted_code} = recast.print(ast);
   if (!save) {
-    console.log(sorted_code);	
+    console.log(sorted_code);
   } else {
     fs.writeFileSync(filepath, sorted_code);
   }
@@ -140,9 +195,9 @@ function abcify(filename, save = false) {
 if (require.main === module) {
   const args = parse_cmd_args();
   const {s: save = false, _: filenames} = args;
-  filenames.forEach((filename) => abcify(filename, save));
+  filenames.forEach(filename => abcify(filename, save));
 }
 
 module.exports = {
-  abcify
+  abcify,
 };
