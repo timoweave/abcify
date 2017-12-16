@@ -198,7 +198,8 @@ function abcify(filename, save = false) {
 
   sort_ast_switch(ast, "visitSwitchStatement", "cases");
 
-  const {code: sorted_code} = recast.print(ast);
+  const {code} = recast.print(ast);
+  const sorted_code = code.trimRight();
   if (!save) {
     console.log(sorted_code);
   } else {

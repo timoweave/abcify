@@ -1,0 +1,10 @@
+language: node_js
+node_js:
+  - "7"
+sudo: required
+notifications:
+  email:
+    recipients:
+      - timoweave@gmail.com
+    on_success: always
+    on_failure: always
