@@ -1,5 +1,7 @@
 # abcify cli
 
+[![Build Status](https://travis-ci.org/timoweave/abcify.svg?branch=master)](https://travis-ci.org/timoweave/abcify)
+
 This `abcify` walks the input AST with visitors to sort commutative expressions shown here:
 
 1. object literal by keys,
