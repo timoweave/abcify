@@ -4,9 +4,9 @@
   "description": "sort object literals, object destructuring, react attributes, and flow type by key",
   "main": "abcify",
   "scripts": {
-    "test": "./abcify --switches --imports --destructures --objects --shapes --enums --attributes example/input.js > example/tested.js && diff example/tested.js example/expected.js && rm example/tested.js",
+    "test1": "./abcify --cases --imports --destructures --objects --shapes --enums --attributes example/input.js > example/tested.js && diff example/tested.js example/expected.js && rm example/tested.js",
     "test2": "nyc --reporter=html --reporter=text mocha --timeout=3000",
-    "coverage": "nyc report --reporter=text-lcov | coveralls"
+    "test": "npm run test1 && npm run test2"    
   },
   "keywords": [
     "abc",

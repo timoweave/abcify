@@ -13,8 +13,20 @@ const NUMBER_LITERAL = "NumberLiteralTypeAnnotation";
 const BOOLEAN_LITERAL = "BooleanLiteralTypeAnnotation";
 const UNDEFINED = "undefined";
 const IDENTIFIER = "Identifier";
+const SWITCH_CASE = "SwitchCase";
 
 const {version} = require("./package.json");
+
+function walk_ast(ast, token, required, callback) {
+  if (required) {
+    recast.types.visit(ast, {
+      [token]: function(path) {
+        this.traverse(path);
+        callback(path);
+      },
+    });
+  }
+}
 
 function is_undefined_literal(a) {
   const {type: kind = null, id: {type = null, name = null} = {}} = a || {};
@@ -23,84 +35,6 @@ function is_undefined_literal(a) {
   }
 
   return kind === GENERIC && type === IDENTIFIER && name === UNDEFINED;
-}
-
-function sort_ast(ast, token, node, comparator) {
-  recast.types.visit(ast, {
-    [token]: function(path) {
-      this.traverse(path);
-      path.value[node].sort(comparator);
-    },
-  });
-}
-
-function sort_ast_switch(ast, token, node) {
-  recast.types.visit(ast, {
-    [token]: function(path) {
-      this.traverse(path);
-      const init = [[]];
-      const nested_cases = path.value.cases.reduce((ans, this_case) => {
-        const last = ans[ans.length - 1];
-        if (
-          last.length === 0 ||
-          last[last.length - 1].consequent.length === 0
-        ) {
-          last.push(this_case);
-        } else {
-          ans.push([this_case]);
-        }
-        return ans;
-      }, init);
-      const sorted_cases = nested_cases.map(these_cases => {
-        const consequent = these_cases[these_cases.length - 1].consequent;
-        these_cases[these_cases.length - 1].consequent = [];
-        these_cases.sort((a, b) => {
-          if (a === null || a.test === undefined) {
-            return 1;
-          } else if (b === null || b.test === undefined) {
-            return -1;
-          } else if (a === null || a.test === null) {
-            return 1;
-          } else if (b === null || b.test === null) {
-            return -1;
-          } else if (typeof a.test.value !== typeof b.test.value) {
-            if (typeof a.test.value === "boolean") {
-              return -1;
-            } else if (typeof b.test.value === "boolean") {
-              return 1;
-            } else if (typeof a.test.value === "number") {
-              return -1;
-            } else if (typeof b.test.value === "number") {
-              return 1;
-            }
-          } else if (typeof a.test.value === typeof b.test.value) {
-            if (typeof a.test.value === "boolean") {
-              if (a.test.value === b.test.value) {
-                return 0;
-              } else if (a.test.value < b.test.value) {
-                return -1;
-              } else {
-                return 1;
-              }
-            } else if (typeof a.test.value === "number") {
-              return a.test.value - b.test.value;
-            } else {
-              return compare_name(a.test.value, b.test.value);
-            }
-          } else {
-            return compare_name(a.test.value, b.test.value);
-          }
-        });
-        these_cases[these_cases.length - 1].consequent = consequent;
-        return these_cases;
-      });
-      const new_cases = sorted_cases.reduce((ans, nested) => {
-        ans.push(...nested);
-        return ans;
-      }, []);
-      path.value.cases = new_cases;
-    },
-  });
 }
 
 function compare_name(a_name, b_name) {
@@ -169,6 +103,47 @@ function compare_by_attribute(a, b) {
   return compare_name(a_name, b_name);
 }
 
+function compare_by_case(a, b) {
+  if (a.type !== SWITCH_CASE || b.type !== SWITCH_CASE) {
+    return 0;
+  }
+  if (a === null || a.test === undefined) {
+    return 1;
+  } else if (b === null || b.test === undefined) {
+    return -1;
+  } else if (a === null || a.test === null) {
+    return 1;
+  } else if (b === null || b.test === null) {
+    return -1;
+  } else if (typeof a.test.value !== typeof b.test.value) {
+    if (typeof a.test.value === "boolean") {
+      return -1;
+    } else if (typeof b.test.value === "boolean") {
+      return 1;
+    } else if (typeof a.test.value === "number") {
+      return -1;
+    } else if (typeof b.test.value === "number") {
+      return 1;
+    }
+  } else if (typeof a.test.value === typeof b.test.value) {
+    if (typeof a.test.value === "boolean") {
+      if (a.test.value === b.test.value) {
+        return 0;
+      } else if (a.test.value < b.test.value) {
+        return -1;
+      } else {
+        return 1;
+      }
+    } else if (typeof a.test.value === "number") {
+      return a.test.value - b.test.value;
+    } else {
+      return compare_name(a.test.value, b.test.value);
+    }
+  } else {
+    return compare_name(a.test.value, b.test.value);
+  }
+}
+
 function read_file(filepath) {
   if (!fs.existsSync(filepath)) {
     console.warn(`WARNING: ${filepath} does not exist`);
@@ -230,7 +205,7 @@ function parse_cmd_args() {
     action: "storeTrue",
     nargs: 0,
   });
-  parser.addArgument("--switches", {
+  parser.addArgument("--cases", {
     help: "sort switch case statement",
     defaultValue: false,
     action: "storeTrue",
@@ -249,24 +224,78 @@ function parse_cmd_args() {
 function abcify(source_code, cli_args) {
   const ast = recast.parse(source_code, {parser: flow_parser});
   const {imports, objects, destructures, attributes} = cli_args;
-  const {shapes, enums, switches} = cli_args;
+  const {shapes, enums, cases} = cli_args;
 
-  imports &&
-    sort_ast(ast, "visitImportDeclaration", "specifiers", compare_by_imported);
-  objects &&
-    sort_ast(ast, "visitObjectExpression", "properties", compare_by_object);
-  destructures &&
-    sort_ast(ast, "visitObjectPattern", "properties", compare_by_object);
-  attributes &&
-    sort_ast(ast, "visitJSXOpeningElement", "attributes", compare_by_attribute);
-  shapes &&
-    sort_ast(ast, "visitObjectTypeAnnotation", "properties", compare_by_object);
-  enums && sort_ast(ast, "visitUnionTypeAnnotation", "types", compare_by_union);
-  switches && sort_ast_switch(ast, "visitSwitchStatement", "cases");
+  walk_ast(ast, "visitImportDeclaration", imports, path => {
+    path.value.specifiers.sort(compare_by_imported);
+  });
+
+  walk_ast(ast, "visitObjectExpression", objects, path => {
+    path.value.properties.sort(compare_by_object);
+  });
+
+  walk_ast(ast, "visitObjectPattern", destructures, path => {
+    path.value.properties.sort(compare_by_object);
+  });
+
+  walk_ast(ast, "visitJSXOpeningElement", attributes, path => {
+    path.value.attributes.sort(compare_by_attribute);
+  });
+
+  walk_ast(ast, "visitObjectTypeAnnotation", shapes, path => {
+    path.value.properties.sort(compare_by_object);
+  });
+
+  walk_ast(ast, "visitUnionTypeAnnotation", enums, path => {
+    path.value.types.sort(compare_by_union);
+  });
+
+  walk_ast(ast, "visitSwitchStatement", cases, path => {
+    const groups_of_cases = split_switch_cases(path.value.cases);
+    const sorted_groups_of_cases = sort_switch_cases(groups_of_cases);
+    const sorted_switch_cases = merge_switch_cases(sorted_groups_of_cases);
+    path.value.cases = sorted_switch_cases;
+  });
 
   const {code: target_code} = recast.print(ast);
   const sorted_code = target_code.trimRight();
   return sorted_code;
+}
+
+function merge_switch_cases(groups_of_cases) {
+  const consequent_cases = groups_of_cases
+    .map(group => {
+      group.cases[group.cases.length - 1].consequent = group.consequent;
+      return group.cases;
+    })
+    .reduce((ans, cases) => {
+      ans.push(...cases);
+      return ans;
+    }, []);
+  return consequent_cases;
+}
+
+function sort_switch_cases(groups_of_cases) {
+  return groups_of_cases.map(group => {
+    group.cases.sort(compare_by_case);
+    return group;
+  });
+}
+
+function split_switch_cases(cases) {
+  const init = consequent => ({cases: [], consequent});
+  const groups_of_cases = cases.reduceRight((ans, switch_case) => {
+    const {consequent} = switch_case;
+    if (consequent && consequent.length) {
+      const last = init(consequent);
+      ans.unshift(last);
+      switch_case.consequent = [];
+    }
+    const last = ans[0];
+    last.cases.unshift(switch_case);
+    return ans;
+  }, []);
+  return groups_of_cases;
 }
 
 function abcify_file(filename, cli_args) {
@@ -302,6 +331,5 @@ module.exports = {
   is_undefined_literal,
   parse_cmd_args,
   read_file,
-  sort_ast,
-  sort_ast_switch,
+  walk_ast,
 };
