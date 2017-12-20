@@ -13,6 +13,8 @@ This `abcify` walks the input AST with visitors to sort commutative expressions 
 
 note: supporting es2015, react, and flow.
 
+![Screenshot](example/demo.gif)
+
 ## SETUP
 
 * `npm install abcify`
