@@ -37,7 +37,7 @@ function is_undefined_literal(a) {
   return kind === GENERIC && type === IDENTIFIER && name === UNDEFINED;
 }
 
-function compare_name(a_name, b_name) {
+function compare_by_name(a_name, b_name) {
   const a_len = a_name == null ? 0 : a_name.length;
   const b_len = b_name == null ? 0 : b_name.length;
 
@@ -61,7 +61,7 @@ function compare_by_union(a, b) {
   } else if (b.type === NULL) {
     return 1;
   } else if (a.type === BOOLEAN_LITERAL && b.type === BOOLEAN_LITERAL) {
-    return compare_name(a.raw, b.raw);
+    return compare_by_name(a.raw, b.raw);
   } else if (a.type === BOOLEAN_LITERAL) {
     return -1;
   } else if (b.type === BOOLEAN_LITERAL) {
@@ -73,7 +73,7 @@ function compare_by_union(a, b) {
   } else if (b.type === NUMBER_LITERAL) {
     return 1;
   } else {
-    return compare_name(a.raw, b.raw);
+    return compare_by_name(a.raw, b.raw);
   }
 }
 
@@ -86,21 +86,21 @@ function compare_by_object(a, b) {
     b.key.type === IDENTIFIER
       ? b.key.name
       : b.key.type === LITERAL ? b.key.value : null;
-  return compare_name(a_name, b_name);
+  return compare_by_name(a_name, b_name);
 }
 
 function compare_by_imported(a, b) {
   const a_name = a.type === IMPORT_SPECIFIER ? a.imported.name : null;
   const b_name = b.type === IMPORT_SPECIFIER ? b.imported.name : null;
 
-  return compare_name(a_name, b_name);
+  return compare_by_name(a_name, b_name);
 }
 
 function compare_by_attribute(a, b) {
   const a_name = a.type === JSX_ATTRIBUTE ? a.name.name : null;
   const b_name = b.type === JSX_ATTRIBUTE ? b.name.name : null;
 
-  return compare_name(a_name, b_name);
+  return compare_by_name(a_name, b_name);
 }
 
 function compare_by_case(a, b) {
@@ -137,10 +137,10 @@ function compare_by_case(a, b) {
     } else if (typeof a.test.value === "number") {
       return a.test.value - b.test.value;
     } else {
-      return compare_name(a.test.value, b.test.value);
+      return compare_by_name(a.test.value, b.test.value);
     }
   } else {
-    return compare_name(a.test.value, b.test.value);
+    return compare_by_name(a.test.value, b.test.value);
   }
 }
 
@@ -321,13 +321,14 @@ module.exports = {
   NULL,
   NUMBER_LITERAL,
   UNDEFINED,
+
   abcify,
   abcify_file,
   compare_by_attribute,
   compare_by_imported,
   compare_by_object,
   compare_by_union,
-  compare_name,
+  compare_by_name,
   is_undefined_literal,
   parse_cmd_args,
   read_file,

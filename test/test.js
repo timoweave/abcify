@@ -2,29 +2,74 @@ const chai = require("chai");
 const utils = require("../utils");
 const recast = require("recast");
 const flow_parser = require("flow-parser");
+const node_cmd = require("node-cmd");
+const path = require("path");
+const fs = require("fs");
+const git_diff = require("git-diff");
 
-const {assert} = chai;
+const {assert, expect} = chai;
 const {GENERIC, IDENTIFIER, UNDEFINED} = utils;
-const {is_undefined_literal, compare_name, walk_ast, compare_by_object} = utils;
+const {is_undefined_literal, walk_ast} = utils;
+const {compare_by_name, compare_by_attribute, compare_by_imported} = utils;
+const {compare_by_union, compare_by_case, compare_by_object} = utils;
 
-describe("compare_name", function() {
-  it("should be able to handle undefined/null", function() {
-    assert.equal(compare_name(null, null), 0);
-    assert.equal(compare_name(undefined, undefined), 0);
-    assert.equal(compare_name("", ""), 0);
-    assert.equal(compare_name("1", "2"), -1);
-    assert.equal(compare_name("a", "b"), -1);
-    assert.equal(compare_name("1", "1a"), -1);
-    assert.equal(compare_name("a", "a2"), -1);
+describe("cli", function() {
+  it("run from command line interface", function(done) {
+    const dir = path.resolve(__dirname + "/..");
+    const cmd = [
+      `${dir}/abcify`,
+      "--cases",
+      "--imports",
+      "--destructures",
+      "--objects",
+      "--shapes",
+      "--enums",
+      "--attributes",
+      "example/input.js",
+    ].join(" ");
+
+    node_cmd.get(cmd, function(err, data, stderr) {
+      if (err) {
+        done(err);
+        return;
+      } else {
+        fs.readFile(`${dir}/example/expected.js`, "utf8", (error, content) => {
+          if (error) {
+            done(error);
+            return;
+          }
+          const diff = git_diff(data, content, {color: true});
+          if (content === data) {
+            done();
+          } else {
+            console.log(diff);
+            done({failed: "git diff failed"});
+          }
+        });
+      }
+    });
+  });
+});
+
+describe("compare_by_name", function() {
+  it("should be able to handle undefined/null/string", function() {
+    assert.equal(compare_by_name(null, null), 0);
+    assert.equal(compare_by_name(undefined, undefined), 0);
+    assert.equal(compare_by_name("", ""), 0);
+    assert.equal(compare_by_name("1", "2"), -1);
+    assert.equal(compare_by_name("a", "b"), -1);
+    assert.equal(compare_by_name("1", "1a"), -1);
+    assert.equal(compare_by_name("a", "a2"), -1);
   });
 });
 
 describe("is_undefined_literal", function() {
   it("should be able to handle right types", function() {
-    assert.equal(
-      is_undef({type: GENERIC, id: {name: UNDEFINED, type: IDENTIFIER}}),
-      true
-    );
+    let ans = is_undef({
+      type: GENERIC,
+      id: {name: UNDEFINED, type: IDENTIFIER},
+    });
+    assert.equal(ans, true);
   });
 
   it("should be able to handle null/undefined", function() {
@@ -36,29 +81,20 @@ describe("is_undefined_literal", function() {
   });
 
   it("should be able to handle {}", function() {
+    let ans = null;
     assert.equal(is_undef({}), false);
     assert.equal(is_undef({type: true}), false);
     assert.equal(is_undef({type: true, id: {type: false}}), false);
-    assert.equal(
-      is_undef({type: true, id: {name: "hello", type: false}}),
-      false
-    );
-    assert.equal(
-      is_undef({type: GENERIC, id: {name: "hello", type: false}}),
-      false
-    );
-    assert.equal(
-      is_undef({type: GENERIC, id: {name: "hello", type: IDENTIFIER}}),
-      false
-    );
-    assert.equal(
-      is_undef({type: GENERIC, id: {name: null, type: IDENTIFIER}}),
-      false
-    );
-    assert.equal(
-      is_undef({type: GENERIC, id: {name: undefined, type: IDENTIFIER}}),
-      false
-    );
+    ans = is_undef({type: true, id: {name: "hello", type: false}});
+    assert.equal(ans, false);
+    ans = is_undef({type: GENERIC, id: {name: "hello", type: false}});
+    assert.equal(ans, false);
+    ans = is_undef({type: GENERIC, id: {name: "hello", type: IDENTIFIER}});
+    assert.equal(ans, false);
+    ans = is_undef({type: GENERIC, id: {name: null, type: IDENTIFIER}});
+    assert.equal(ans, false);
+    ans = is_undef({type: GENERIC, id: {name: undefined, type: IDENTIFIER}});
+    assert.equal(ans, false);
   });
 
   function is_undef(a) {
