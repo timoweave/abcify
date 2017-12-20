@@ -165,51 +165,59 @@ function parse_cmd_args() {
 
   parser.addArgument("--save", {
     help: "save the output to the input",
-    defaultValue: false,
+    defaultValue: 0,
     action: "storeTrue",
+    type: "int",
     nargs: 0,
   });
   parser.addArgument("--imports", {
     help: "sort import object destructuring by name",
-    defaultValue: false,
-    action: "storeTrue",
-    nargs: 0,
+    defaultValue: 1,
+    action: "store",
+    type: "int",
+    nargs: "?",
   });
   parser.addArgument("--objects", {
     help: "sort object literal by key",
-    defaultValue: false,
-    action: "storeTrue",
-    nargs: 0,
+    defaultValue: 1,
+    action: "store",
+    type: "int",
+    nargs: "?",
   });
   parser.addArgument("--destructures", {
     help: "sort object destructuring by key",
-    defaultValue: false,
-    action: "storeTrue",
-    nargs: 0,
+    defaultValue: 1,
+    action: "store",
+    type: "int",
+    nargs: "?",
   });
   parser.addArgument("--attributes", {
     help: "sort jsx attribute by name",
-    defaultValue: false,
-    action: "storeTrue",
-    nargs: 0,
+    defaultValue: 1,
+    action: "store",
+    type: "int",
+    nargs: "?",
   });
   parser.addArgument("--shapes", {
-    help: "sort flow object type (shape)",
-    defaultValue: false,
-    action: "storeTrue",
-    nargs: 0,
+    help: "sort flow object type (shapes)",
+    defaultValue: 1,
+    action: "store",
+    type: "int",
+    nargs: "?",
   });
   parser.addArgument("--enums", {
     help: "sort flow union types (enums)",
-    defaultValue: false,
-    action: "storeTrue",
-    nargs: 0,
+    defaultValue: 1,
+    action: "store",
+    type: "int",
+    nargs: "?",
   });
   parser.addArgument("--cases", {
     help: "sort switch case statement",
-    defaultValue: false,
-    action: "storeTrue",
-    nargs: 0,
+    defaultValue: 1,
+    action: "store",
+    type: "int",
+    nargs: "?",
   });
   parser.addArgument("filenames", {
     help: "input file names to be sorted",

@@ -16,17 +16,7 @@ const {compare_by_union, compare_by_case, compare_by_object} = utils;
 describe("cli", function() {
   it("run from command line interface", function(done) {
     const dir = path.resolve(__dirname + "/..");
-    const cmd = [
-      `${dir}/abcify`,
-      "--cases",
-      "--imports",
-      "--destructures",
-      "--objects",
-      "--shapes",
-      "--enums",
-      "--attributes",
-      "example/input.js",
-    ].join(" ");
+    const cmd = [`${dir}/abcify`, "example/input.js"].join(" ");
 
     node_cmd.get(cmd, function(err, data, stderr) {
       if (err) {
